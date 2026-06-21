@@ -74,9 +74,9 @@ controls.maxPolarAngle = Math.PI * 0.49;
 controls.minDistance = 1.35;
 controls.maxDistance = 32;
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 0.3));
+scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 0.15));
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 0.6);
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.3);
 keyLight.position.set(4, 7, 6);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(2048, 2048);
@@ -84,11 +84,11 @@ keyLight.shadow.camera.near = 0.5;
 keyLight.shadow.camera.far = 18;
 scene.add(keyLight);
 
-const fillLight = new THREE.PointLight(0xffffff, 0.725, 18);
+const fillLight = new THREE.PointLight(0xffffff, 0.3625, 18);
 fillLight.position.set(-5, 3.2, 2);
 scene.add(fillLight);
 
-const carRimLight = new THREE.SpotLight(0xffffff, 2.6, 12, Math.PI * 0.22, 0.45, 1.2);
+const carRimLight = new THREE.SpotLight(0xffffff, 1.3, 12, Math.PI * 0.22, 0.45, 1.2);
 carRimLight.position.set(-3.8, 4.5, 3.8);
 carRimLight.target.position.set(0, 0.65, 0);
 scene.add(carRimLight);
