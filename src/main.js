@@ -99,7 +99,6 @@ let wallMaterial;
 let activeAsset = null;
 let activeTexture = makePresetTexture();
 const loadedAssets = [];
-let cameraTween = null;
 const previewCameraProjection = new THREE.Vector3();
 
 const wallVertexShader = `
@@ -660,32 +659,9 @@ function setCameraView(view) {
   };
   const next = views[view];
   if (!next) return;
-  startCameraTween(stagePosition(next.position), stagePosition(next.target));
-}
-
-function startCameraTween(position, target) {
-  cameraTween = {
-    elapsed: 0,
-    duration: 0.85,
-    fromPosition: camera.position.clone(),
-    toPosition: new THREE.Vector3(...position),
-    fromTarget: controls.target.clone(),
-    toTarget: new THREE.Vector3(...target),
-  };
-}
-
-function updateCameraTween(delta) {
-  if (!cameraTween) return;
-  cameraTween.elapsed = Math.min(cameraTween.duration, cameraTween.elapsed + delta);
-  const linearT = cameraTween.elapsed / cameraTween.duration;
-  const t = linearT * linearT * (3 - 2 * linearT);
-
-  camera.position.lerpVectors(cameraTween.fromPosition, cameraTween.toPosition, t);
-  controls.target.lerpVectors(cameraTween.fromTarget, cameraTween.toTarget, t);
-
-  if (linearT >= 1) {
-    cameraTween = null;
-  }
+  camera.position.set(...stagePosition(next.position));
+  controls.target.set(...stagePosition(next.target));
+  controls.update();
 }
 
 assetInput.addEventListener('change', (event) => addFiles(event.target.files));
@@ -745,7 +721,6 @@ function resize() {
 function animate() {
   const delta = clock.getDelta();
   resize();
-  updateCameraTween(delta);
   controls.update();
   camera.getWorldPosition(previewCameraProjection);
   if (wallMaterial) {
