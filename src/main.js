@@ -36,7 +36,7 @@ const DEFAULT_CAR_MODEL = {
 };
 const SCENE_BASIS_DEGREES = -90;
 const SCENE_BASIS_RADIANS = THREE.MathUtils.degToRad(SCENE_BASIS_DEGREES);
-const CAR_YAW_DEGREES = SCENE_BASIS_DEGREES;
+const CAR_YAW_DEGREES = SCENE_BASIS_DEGREES + 180;
 
 function rotateStagePoint(point) {
   return new THREE.Vector3(...point).applyAxisAngle(new THREE.Vector3(0, 1, 0), SCENE_BASIS_RADIANS);
@@ -164,6 +164,15 @@ let car = new THREE.Group();
 car.name = 'LoadedCarSlot';
 scene.add(car);
 
+const reflectionTarget = new THREE.WebGLCubeRenderTarget(512, {
+  generateMipmaps: true,
+  minFilter: THREE.LinearMipmapLinearFilter,
+  colorSpace: THREE.SRGBColorSpace,
+});
+const reflectionCamera = new THREE.CubeCamera(0.25, 80, reflectionTarget);
+reflectionCamera.position.set(0, 0.95, 0);
+scene.add(reflectionCamera);
+
 const clock = new THREE.Clock();
 
 function buildWall() {
@@ -230,7 +239,14 @@ function disposeObject(object) {
     const materials = Array.isArray(child.material) ? child.material : [child.material];
     materials.forEach((material) => {
       Object.values(material).forEach((value) => {
-        if (value?.isTexture && value !== activeTexture && value !== neutralEnvironment) value.dispose();
+        if (
+          value?.isTexture &&
+          value !== activeTexture &&
+          value !== neutralEnvironment &&
+          value !== reflectionTarget.texture
+        ) {
+          value.dispose();
+        }
       });
       material.dispose();
     });
@@ -275,8 +291,7 @@ function normalizeCarModel(model) {
     const materials = Array.isArray(child.material) ? child.material : [child.material];
     materials.forEach((material) => {
       material.side = THREE.DoubleSide;
-      if ('envMapIntensity' in material) material.envMapIntensity = 2.0;
-      if ('roughness' in material) material.roughness = Math.min(material.roughness ?? 0.5, 0.42);
+      tuneCarMaterialForReflections(material, child);
       material.needsUpdate = true;
     });
   });
@@ -285,13 +300,7 @@ function normalizeCarModel(model) {
 }
 
 function updateReflectionEnvironment() {
-  if (activeTexture) {
-    activeTexture.mapping = THREE.EquirectangularReflectionMapping;
-    activeTexture.needsUpdate = true;
-    scene.environment = activeTexture;
-  } else {
-    scene.environment = neutralEnvironment;
-  }
+  scene.environment = neutralEnvironment;
   applyCarReflectionEnvironment();
 }
 
@@ -302,11 +311,35 @@ function applyCarReflectionEnvironment() {
     const materials = Array.isArray(child.material) ? child.material : [child.material];
     materials.forEach((material) => {
       if (!material || !('envMap' in material)) return;
-      material.envMap = activeTexture ?? neutralEnvironment;
-      if ('envMapIntensity' in material) material.envMapIntensity = 2.25;
+      material.envMap = reflectionTarget.texture;
+      tuneCarMaterialForReflections(material, child);
       material.needsUpdate = true;
     });
   });
+}
+
+function tuneCarMaterialForReflections(material, mesh) {
+  const materialLabel = `${material.name ?? ''} ${mesh.name ?? ''}`.toLowerCase();
+  const isRubber = /tire|tyre|rubber/.test(materialLabel);
+
+  if ('envMapIntensity' in material) material.envMapIntensity = isRubber ? 0.35 : 3.8;
+  if ('roughness' in material) {
+    const maxRoughness = isRubber ? 0.78 : 0.24;
+    material.roughness = Math.min(material.roughness ?? maxRoughness, maxRoughness);
+  }
+  if ('clearcoat' in material && !isRubber) material.clearcoat = Math.max(material.clearcoat ?? 0, 0.72);
+  if ('clearcoatRoughness' in material && !isRubber) {
+    material.clearcoatRoughness = Math.min(material.clearcoatRoughness ?? 0.12, 0.12);
+  }
+}
+
+function updateCarReflectionCapture() {
+  if (!car || !wallMesh) return;
+  const wasVisible = car.visible;
+  car.visible = false;
+  reflectionCamera.position.set(0, 0.95, 0);
+  reflectionCamera.update(renderer, scene);
+  car.visible = wasVisible;
 }
 
 function resetCarToStandIn() {
@@ -392,7 +425,6 @@ function setWallTexture(texture, asset = null) {
   activeTexture.colorSpace = THREE.SRGBColorSpace;
   activeTexture.wrapS = THREE.RepeatWrapping;
   activeTexture.wrapT = THREE.ClampToEdgeWrapping;
-  activeTexture.mapping = THREE.EquirectangularReflectionMapping;
   if (wallMaterial) {
     wallMaterial.uniforms.map.value = activeTexture;
     wallMaterial.needsUpdate = true;
@@ -638,6 +670,7 @@ function animate() {
   if (wallMaterial) {
     wallMaterial.uniforms.projectionCenter.value.copy(previewCameraProjection);
   }
+  updateCarReflectionCapture();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -652,4 +685,7 @@ window.ledStagePreview = {
   camera,
   renderer,
   loadedAssets,
+  get activeVideo() {
+    return activeAsset?.video ?? null;
+  },
 };
