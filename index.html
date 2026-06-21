@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LED Stage Preview</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div id="app">
+      <main class="app-shell">
+        <section class="viewport" aria-label="LED stage preview">
+          <canvas id="stageCanvas"></canvas>
+          <div class="view-actions" aria-label="Camera presets">
+            <button class="angle-button" data-view="front" type="button" title="Front angle" aria-label="Front angle">
+              <i data-lucide="car-front"></i>
+              <span>Front</span>
+            </button>
+            <button class="angle-button" data-view="left" type="button" title="Left angle" aria-label="Left angle">
+              <i data-lucide="move-left"></i>
+              <span>Left</span>
+            </button>
+            <button class="angle-button" data-view="right" type="button" title="Right angle" aria-label="Right angle">
+              <i data-lucide="move-right"></i>
+              <span>Right</span>
+            </button>
+            <button class="angle-button" data-view="back" type="button" title="Back angle" aria-label="Back angle">
+              <i data-lucide="rotate-3d"></i>
+              <span>Back</span>
+            </button>
+          </div>
+        </section>
+
+        <aside class="control-panel" aria-label="Preview controls">
+          <div class="brand-row">
+            <div>
+              <h1>LED Stage Preview</h1>
+              <p>360 equirectangular wall content around a car stage.</p>
+            </div>
+            <div class="status-pill" id="assetStatus">Preset</div>
+          </div>
+
+          <label class="drop-zone" for="assetInput" id="dropZone">
+            <input id="assetInput" type="file" accept="image/*,video/*" multiple />
+            <span class="drop-title">Load 360 files</span>
+            <span class="drop-copy">Drop or select equirectangular images and videos.</span>
+          </label>
+
+          <div class="section">
+            <div class="section-header">
+              <h2>Wall Content</h2>
+              <button id="clearAssets" class="text-button" type="button">Clear</button>
+            </div>
+            <div class="asset-list" id="assetList" aria-label="Loaded wall content"></div>
+          </div>
+
+          <div class="section">
+            <h2>Stage</h2>
+            <div class="control-grid">
+              <label>
+                <span>Wall arc</span>
+                <input id="wallArc" type="range" min="120" max="360" value="360" />
+              </label>
+              <label>
+                <span>LED brightness</span>
+                <input id="brightness" type="range" min="0.4" max="2.2" value="1.15" step="0.05" />
+              </label>
+              <label>
+                <span>Content rotation</span>
+                <input id="rotation" type="range" min="-180" max="180" value="0" />
+              </label>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-header">
+              <h2>Car Model</h2>
+              <button id="resetCarModel" class="text-button" type="button">Reset</button>
+            </div>
+            <label class="model-loader" for="carModelInput">
+              <input id="carModelInput" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" />
+              <span class="drop-title">Load GLB car</span>
+              <span class="drop-copy" id="carModelStatus">Loading default car.</span>
+            </label>
+          </div>
+
+          <div class="section">
+            <h2>Preview</h2>
+            <div class="toggle-row">
+              <label>
+                <input id="showGrid" type="checkbox" checked />
+                Stage grid
+              </label>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

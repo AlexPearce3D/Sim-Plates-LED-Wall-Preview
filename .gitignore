@@ -1,0 +1,13 @@
+.DS_Store
+.env.local
+node_modules/
+dist/
+
+# Local/generated investigation files
+preview-*.png
+scripts/
+
+# Source model package files that are not needed by the web app
+public/models/realistic-car-05/Model_FBX/
+public/models/realistic-car-05/Textures/
+public/models/realistic-car-05/realistic-car-05-black*.glb
