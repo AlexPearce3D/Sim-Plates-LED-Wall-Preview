@@ -388,8 +388,8 @@ function tuneCarMaterialForReflections(material, mesh) {
 
   if ('envMapIntensity' in material) {
     if (isRubber || isInterior) material.envMapIntensity = 0.18;
-    else if (isBodyPaint) material.envMapIntensity = 1.15;
-    else if (isGlass) material.envMapIntensity = 1.45;
+    else if (isBodyPaint) material.envMapIntensity = 2.2;
+    else if (isGlass) material.envMapIntensity = 2.4;
     else if (isWheelOrGrill) material.envMapIntensity = 0.65;
     else material.envMapIntensity = 0.55;
   }
@@ -397,17 +397,17 @@ function tuneCarMaterialForReflections(material, mesh) {
   if ('roughness' in material) {
     if (isRubber) material.roughness = Math.max(material.roughness ?? 0.78, 0.78);
     else if (isInterior) material.roughness = Math.max(material.roughness ?? 0.62, 0.62);
-    else if (isBodyPaint) material.roughness = 0.34;
-    else if (isGlass) material.roughness = 0.08;
+    else if (isBodyPaint) material.roughness = 0.2;
+    else if (isGlass) material.roughness = 0.025;
     else if (isWheelOrGrill) material.roughness = Math.max(material.roughness ?? 0.42, 0.42);
   }
 
   if ('clearcoat' in material) {
-    if (isBodyPaint) material.clearcoat = 0.55;
+    if (isBodyPaint) material.clearcoat = 0.9;
     else if (!isGlass) material.clearcoat = Math.min(material.clearcoat ?? 0, 0.18);
   }
   if ('clearcoatRoughness' in material) {
-    if (isBodyPaint) material.clearcoatRoughness = 0.18;
+    if (isBodyPaint) material.clearcoatRoughness = 0.08;
     else if (!isGlass) material.clearcoatRoughness = Math.max(material.clearcoatRoughness ?? 0.35, 0.35);
   }
 }
