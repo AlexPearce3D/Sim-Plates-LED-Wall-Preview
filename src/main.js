@@ -383,12 +383,13 @@ function tuneCarMaterialForReflections(material, mesh) {
   const isInterior = /interior|seat|leather|dash|headrest/.test(materialLabel);
   const isWheelOrGrill = /wheel|rim|grill|parts/.test(materialLabel);
 
-  if (isBodyPaint && 'color' in material) material.color.setRGB(0.003, 0.003, 0.003);
+  if (isBodyPaint && 'color' in material) material.color.setRGB(0, 0, 0);
+  if (isBodyPaint && 'emissive' in material) material.emissive.setRGB(0, 0, 0);
   if (isBodyPaint && 'metalness' in material) material.metalness = 0.0;
 
   if ('envMapIntensity' in material) {
     if (isRubber || isInterior) material.envMapIntensity = 0.18;
-    else if (isBodyPaint) material.envMapIntensity = 2.2;
+    else if (isBodyPaint) material.envMapIntensity = 1.35;
     else if (isGlass) material.envMapIntensity = 2.4;
     else if (isWheelOrGrill) material.envMapIntensity = 0.65;
     else material.envMapIntensity = 0.55;
@@ -397,7 +398,7 @@ function tuneCarMaterialForReflections(material, mesh) {
   if ('roughness' in material) {
     if (isRubber) material.roughness = Math.max(material.roughness ?? 0.78, 0.78);
     else if (isInterior) material.roughness = Math.max(material.roughness ?? 0.62, 0.62);
-    else if (isBodyPaint) material.roughness = 0.2;
+    else if (isBodyPaint) material.roughness = 0.24;
     else if (isGlass) material.roughness = 0.025;
     else if (isWheelOrGrill) material.roughness = Math.max(material.roughness ?? 0.42, 0.42);
   }
