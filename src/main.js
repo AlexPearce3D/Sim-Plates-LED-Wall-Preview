@@ -132,9 +132,9 @@ const wallFragmentShader = `
 `;
 
 const floorMaterial = new THREE.MeshStandardMaterial({
-  color: 0x050607,
-  roughness: 0.82,
-  metalness: 0.04,
+  color: 0x000000,
+  roughness: 0.86,
+  metalness: 0.02,
 });
 const floor = new THREE.Mesh(new THREE.CylinderGeometry(7.6, 7.9, 0.24, 96), floorMaterial);
 floor.position.y = -0.12;
@@ -142,9 +142,9 @@ floor.receiveShadow = true;
 scene.add(floor);
 
 const turntableMaterial = new THREE.MeshStandardMaterial({
-  color: 0x08090a,
-  roughness: 0.72,
-  metalness: 0.04,
+  color: 0x000000,
+  roughness: 0.78,
+  metalness: 0.02,
 });
 const turntable = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 2.95, 0.08, 96), turntableMaterial);
 turntable.position.y = 0.04;
@@ -153,6 +153,7 @@ scene.add(turntable);
 
 const grid = new THREE.GridHelper(15, 30, 0x1e3432, 0x111417);
 grid.position.y = 0.09;
+grid.visible = showGrid.checked;
 scene.add(grid);
 
 const wallGroup = new THREE.Group();
