@@ -12,21 +12,21 @@
         <section class="viewport" aria-label="LED stage preview">
           <canvas id="stageCanvas"></canvas>
           <div class="view-actions" aria-label="Camera presets">
-            <button class="angle-button" data-view="front" type="button" title="Front angle" aria-label="Front angle">
+            <button class="angle-button" data-view="front" type="button" title="Back angle" aria-label="Back angle">
               <i data-lucide="car-front"></i>
-              <span>Front</span>
-            </button>
-            <button class="angle-button" data-view="left" type="button" title="Left angle" aria-label="Left angle">
-              <i data-lucide="move-left"></i>
-              <span>Left</span>
-            </button>
-            <button class="angle-button" data-view="right" type="button" title="Right angle" aria-label="Right angle">
-              <i data-lucide="move-right"></i>
-              <span>Right</span>
-            </button>
-            <button class="angle-button" data-view="back" type="button" title="Back angle" aria-label="Back angle">
-              <i data-lucide="rotate-3-d"></i>
               <span>Back</span>
+            </button>
+            <button class="angle-button" data-view="left" type="button" title="Driver angle" aria-label="Driver angle">
+              <i data-lucide="move-left"></i>
+              <span>Driver</span>
+            </button>
+            <button class="angle-button" data-view="right" type="button" title="Passenger angle" aria-label="Passenger angle">
+              <i data-lucide="move-right"></i>
+              <span>Passenger</span>
+            </button>
+            <button class="angle-button" data-view="back" type="button" title="Front angle" aria-label="Front angle">
+              <i data-lucide="rotate-3-d"></i>
+              <span>Front</span>
             </button>
           </div>
         </section>
@@ -57,6 +57,13 @@
           <div class="section">
             <h2>Stage</h2>
             <div class="control-grid">
+              <label>
+                <span>Stage type</span>
+                <select id="stageMode">
+                  <option value="curved">Curved wall</option>
+                  <option value="flatBox">4 flat walls + ceiling</option>
+                </select>
+              </label>
               <label>
                 <span>Wall arc</span>
                 <input id="wallArc" type="range" min="120" max="360" value="360" />

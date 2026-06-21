@@ -12,6 +12,7 @@ const assetInput = document.querySelector('#assetInput');
 const dropZone = document.querySelector('#dropZone');
 const assetList = document.querySelector('#assetList');
 const assetStatus = document.querySelector('#assetStatus');
+const stageMode = document.querySelector('#stageMode');
 const wallArc = document.querySelector('#wallArc');
 const brightness = document.querySelector('#brightness');
 const rotation = document.querySelector('#rotation');
@@ -24,11 +25,12 @@ const clearAssets = document.querySelector('#clearAssets');
 const publicUrl = (path) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
 const FIRST_VIDEO = {
   id: 'first-360-video',
-  name: 'SIM_260201_DR-D-RuralHighway03_Desert_WithTraffic_8k_h265_p3g24.mov',
+  name: 'SIM_251005_DR_D-CountryRoad08_8K_HEVC',
   kind: 'Video',
   hevcUrl: import.meta.env.DEV ? '/media/first-360.mov' : null,
   previewUrl: publicUrl('/videos/first-360-preview.mp4'),
   preview: publicUrl('/posters/first-360.jpg'),
+  hevcMeta: '8K HEVC Main 10, 8192x4096, 24 fps',
 };
 const DEFAULT_CAR_MODEL = {
   name: 'RealisticCar05 black paint',
@@ -63,11 +65,11 @@ const neutralEnvironment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04)
 scene.environment = neutralEnvironment;
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 180);
-camera.position.copy(rotateStagePoint([0.15, 1.35, 3.2]));
+camera.position.copy(rotateStagePoint([0.08, 1.08, 2.35]));
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.target.copy(rotateStagePoint([0, 0.88, 0.1]));
+controls.target.copy(rotateStagePoint([0, 1.08, 0.05]));
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.minDistance = 1.35;
 controls.maxDistance = 32;
@@ -92,8 +94,7 @@ carRimLight.target.position.set(0, 0.65, 0);
 scene.add(carRimLight);
 scene.add(carRimLight.target);
 
-let wallMesh;
-let ceilingMesh;
+let wallMeshes = [];
 let wallMaterial;
 let activeAsset = null;
 let activeTexture = makePresetTexture();
@@ -176,34 +177,12 @@ scene.add(reflectionCamera);
 const clock = new THREE.Clock();
 
 function buildWall() {
-  if (wallMesh) {
-    wallMesh.geometry.dispose();
-    wallGroup.remove(wallMesh);
-  }
-  if (ceilingMesh) {
-    ceilingMesh.geometry.dispose();
-    wallGroup.remove(ceilingMesh);
-  }
+  wallMeshes.forEach((mesh) => {
+    mesh.geometry.dispose();
+    wallGroup.remove(mesh);
+  });
+  wallMeshes = [];
   if (wallMaterial) wallMaterial.dispose();
-
-  const arcDegrees = Number(wallArc.value);
-  const arc = THREE.MathUtils.degToRad(arcDegrees);
-  const openGap = Math.PI * 2 - arc;
-  const start = Math.PI * 0.5 + openGap * 0.5;
-  const radius = 7.15;
-  const height = 4.2;
-  const radialSegments = Math.max(48, Math.round(arcDegrees / 2));
-
-  const geometry = new THREE.CylinderGeometry(
-    radius,
-    radius,
-    height,
-    radialSegments,
-    1,
-    true,
-    start,
-    arc,
-  );
 
   wallMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -214,22 +193,100 @@ function buildWall() {
     },
     vertexShader: wallVertexShader,
     fragmentShader: wallFragmentShader,
-    side: THREE.BackSide,
+    side: stageMode.value === 'flatBox' ? THREE.FrontSide : THREE.BackSide,
     toneMapped: false,
   });
 
-  wallMesh = new THREE.Mesh(geometry, wallMaterial);
-  wallMesh.name = 'ProjectedLedWall';
-  wallMesh.position.y = height / 2;
+  if (stageMode.value === 'flatBox') {
+    buildFlatBoxStage();
+  } else {
+    buildCurvedStage();
+  }
+
+  wallArc.disabled = stageMode.value === 'flatBox';
+}
+
+function addLedSurface(mesh) {
+  wallMeshes.push(mesh);
+  wallGroup.add(mesh);
+  return mesh;
+}
+
+function buildCurvedStage() {
+  const arcDegrees = Number(wallArc.value);
+  const arc = THREE.MathUtils.degToRad(arcDegrees);
+  const openGap = Math.PI * 2 - arc;
+  const start = Math.PI * 0.5 + openGap * 0.5;
+  const radius = 7.15;
+  const height = 4.2;
+  const radialSegments = Math.max(48, Math.round(arcDegrees / 2));
+
+  const wallGeometry = new THREE.CylinderGeometry(
+    radius,
+    radius,
+    height,
+    radialSegments,
+    1,
+    true,
+    start,
+    arc,
+  );
+  const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+  wall.name = 'ProjectedCurvedLedWall';
+  wall.position.y = height / 2;
+  addLedSurface(wall);
 
   const ceilingGeometry = new THREE.CircleGeometry(radius, 128);
   ceilingGeometry.rotateX(-Math.PI / 2);
-  ceilingMesh = new THREE.Mesh(ceilingGeometry, wallMaterial);
-  ceilingMesh.name = 'ProjectedLedCeiling';
-  ceilingMesh.position.y = height;
+  const ceiling = new THREE.Mesh(ceilingGeometry, wallMaterial);
+  ceiling.name = 'ProjectedCurvedLedCeiling';
+  ceiling.position.y = height;
+  addLedSurface(ceiling);
+}
 
-  wallGroup.add(wallMesh);
-  wallGroup.add(ceilingMesh);
+function buildFlatBoxStage() {
+  const width = 8.6;
+  const depth = 8.6;
+  const wallHeight = 3.6;
+  const cornerGap = 0.82;
+  const ceilingGap = 0.48;
+  const ceilingInset = 0.62;
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const wallPanelWidth = width - cornerGap * 2;
+  const wallPanelDepth = depth - cornerGap * 2;
+  const ceilingWidth = width - ceilingInset * 2;
+  const ceilingDepth = depth - ceilingInset * 2;
+  const ceilingHeight = wallHeight + ceilingGap;
+
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(wallPanelWidth, wallHeight), wallMaterial);
+  front.name = 'ProjectedFlatLedWallFront';
+  front.position.set(0, wallHeight / 2, -halfDepth);
+  addLedSurface(front);
+
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(wallPanelWidth, wallHeight), wallMaterial);
+  back.name = 'ProjectedFlatLedWallBack';
+  back.position.set(0, wallHeight / 2, halfDepth);
+  back.rotation.y = Math.PI;
+  addLedSurface(back);
+
+  const left = new THREE.Mesh(new THREE.PlaneGeometry(wallPanelDepth, wallHeight), wallMaterial);
+  left.name = 'ProjectedFlatLedWallLeft';
+  left.position.set(-halfWidth, wallHeight / 2, 0);
+  left.rotation.y = Math.PI / 2;
+  addLedSurface(left);
+
+  const right = new THREE.Mesh(new THREE.PlaneGeometry(wallPanelDepth, wallHeight), wallMaterial);
+  right.name = 'ProjectedFlatLedWallRight';
+  right.position.set(halfWidth, wallHeight / 2, 0);
+  right.rotation.y = -Math.PI / 2;
+  addLedSurface(right);
+
+  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ceilingWidth, ceilingDepth), wallMaterial);
+  ceiling.name = 'ProjectedFlatLedCeiling';
+  ceiling.position.y = ceilingHeight;
+  ceiling.rotation.x = Math.PI / 2;
+  addLedSurface(ceiling);
 }
 
 function disposeObject(object) {
@@ -320,21 +377,43 @@ function applyCarReflectionEnvironment() {
 
 function tuneCarMaterialForReflections(material, mesh) {
   const materialLabel = `${material.name ?? ''} ${mesh.name ?? ''}`.toLowerCase();
+  const isBodyPaint = /body/.test(materialLabel);
+  const isGlass = /glass|window|windshield/.test(materialLabel);
   const isRubber = /tire|tyre|rubber/.test(materialLabel);
+  const isInterior = /interior|seat|leather|dash|headrest/.test(materialLabel);
+  const isWheelOrGrill = /wheel|rim|grill|parts/.test(materialLabel);
 
-  if ('envMapIntensity' in material) material.envMapIntensity = isRubber ? 0.35 : 3.8;
-  if ('roughness' in material) {
-    const maxRoughness = isRubber ? 0.78 : 0.24;
-    material.roughness = Math.min(material.roughness ?? maxRoughness, maxRoughness);
+  if (isBodyPaint && 'color' in material) material.color.setRGB(0.003, 0.003, 0.003);
+  if (isBodyPaint && 'metalness' in material) material.metalness = 0.0;
+
+  if ('envMapIntensity' in material) {
+    if (isRubber || isInterior) material.envMapIntensity = 0.18;
+    else if (isBodyPaint) material.envMapIntensity = 1.15;
+    else if (isGlass) material.envMapIntensity = 1.45;
+    else if (isWheelOrGrill) material.envMapIntensity = 0.65;
+    else material.envMapIntensity = 0.55;
   }
-  if ('clearcoat' in material && !isRubber) material.clearcoat = Math.max(material.clearcoat ?? 0, 0.72);
-  if ('clearcoatRoughness' in material && !isRubber) {
-    material.clearcoatRoughness = Math.min(material.clearcoatRoughness ?? 0.12, 0.12);
+
+  if ('roughness' in material) {
+    if (isRubber) material.roughness = Math.max(material.roughness ?? 0.78, 0.78);
+    else if (isInterior) material.roughness = Math.max(material.roughness ?? 0.62, 0.62);
+    else if (isBodyPaint) material.roughness = 0.34;
+    else if (isGlass) material.roughness = 0.08;
+    else if (isWheelOrGrill) material.roughness = Math.max(material.roughness ?? 0.42, 0.42);
+  }
+
+  if ('clearcoat' in material) {
+    if (isBodyPaint) material.clearcoat = 0.55;
+    else if (!isGlass) material.clearcoat = Math.min(material.clearcoat ?? 0, 0.18);
+  }
+  if ('clearcoatRoughness' in material) {
+    if (isBodyPaint) material.clearcoatRoughness = 0.18;
+    else if (!isGlass) material.clearcoatRoughness = Math.max(material.clearcoatRoughness ?? 0.35, 0.35);
   }
 }
 
 function updateCarReflectionCapture() {
-  if (!car || !wallMesh) return;
+  if (!car || !wallMeshes.length) return;
   const wasVisible = car.visible;
   car.visible = false;
   reflectionCamera.position.set(0, 0.95, 0);
@@ -473,7 +552,7 @@ function makeInitialVideoAsset() {
     ...FIRST_VIDEO,
     url: video.src,
     statusLabel: 'Video',
-    meta: codecSupported ? '8K HEVC' : 'H.264 preview',
+    meta: codecSupported ? FIRST_VIDEO.hevcMeta : 'Local H.264 fallback texture',
     video,
     texture: makeVideoTexture(video),
   };
@@ -562,20 +641,20 @@ function renderAssetList() {
 function setCameraView(view) {
   const views = {
     front: {
-      position: [0.1, 1.32, 3.15],
-      target: [0, 0.88, 0.12],
+      position: [0.08, 1.08, 2.35],
+      target: [0, 1.08, 0.05],
     },
     left: {
-      position: [-3.25, 1.35, 0.25],
-      target: [0, 0.82, 0.05],
+      position: [-2.4, 1.08, 0.05],
+      target: [0, 1.08, 0.05],
     },
     right: {
-      position: [3.25, 1.35, 0.25],
-      target: [0, 0.82, 0.05],
+      position: [2.4, 1.08, 0.05],
+      target: [0, 1.08, 0.05],
     },
     back: {
-      position: [0.05, 1.28, -3.05],
-      target: [0, 0.92, -0.1],
+      position: [0.08, 1.08, -2.35],
+      target: [0, 1.08, -0.05],
     },
   };
   const next = views[view];
@@ -626,6 +705,7 @@ assetInput.addEventListener('change', (event) => addFiles(event.target.files));
 
 dropZone.addEventListener('drop', (event) => addFiles(event.dataTransfer.files));
 
+stageMode.addEventListener('change', buildWall);
 wallArc.addEventListener('input', buildWall);
 brightness.addEventListener('input', () => {
   if (wallMaterial) wallMaterial.uniforms.brightness.value = Number(brightness.value);
