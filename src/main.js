@@ -65,11 +65,11 @@ const neutralEnvironment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04)
 scene.environment = neutralEnvironment;
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 180);
-camera.position.copy(rotateStagePoint([0, 0.9, 2.78]));
+camera.position.copy(rotateStagePoint([0.08, 1.08, 2.35]));
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.target.copy(rotateStagePoint([0, 0.82, 0.02]));
+controls.target.copy(rotateStagePoint([0, 1.08, 0.05]));
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.minDistance = 1.35;
 controls.maxDistance = 32;
@@ -642,20 +642,20 @@ function renderAssetList() {
 function setCameraView(view) {
   const views = {
     front: {
-      position: [0, 0.9, 2.78],
-      target: [0, 0.82, 0.02],
+      position: [0.08, 1.08, 2.35],
+      target: [0, 1.08, 0.05],
     },
     left: {
-      position: [-2.55, 0.94, 0.04],
-      target: [0, 0.84, 0.02],
+      position: [-2.4, 1.08, 0.05],
+      target: [0, 1.08, 0.05],
     },
     right: {
-      position: [2.55, 0.94, 0.04],
-      target: [0, 0.84, 0.02],
+      position: [2.4, 1.08, 0.05],
+      target: [0, 1.08, 0.05],
     },
     back: {
-      position: [0, 0.94, -2.65],
-      target: [0, 0.84, -0.02],
+      position: [0.08, 1.08, -2.35],
+      target: [0, 1.08, -0.05],
     },
   };
   const next = views[view];
