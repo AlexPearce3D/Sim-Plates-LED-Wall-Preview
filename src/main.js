@@ -65,11 +65,11 @@ const neutralEnvironment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04)
 scene.environment = neutralEnvironment;
 
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 180);
-camera.position.copy(rotateStagePoint([0.08, 1.08, 2.8]));
+camera.position.copy(rotateStagePoint([-1.55, 1.16, -3.7]));
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.target.copy(rotateStagePoint([0, 1.08, 0.05]));
+controls.target.copy(rotateStagePoint([0, 0.92, -0.02]));
 controls.maxPolarAngle = Math.PI * 0.49;
 controls.minDistance = 1.35;
 controls.maxDistance = 32;
