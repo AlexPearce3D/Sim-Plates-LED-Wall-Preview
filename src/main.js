@@ -74,7 +74,7 @@ controls.maxPolarAngle = Math.PI * 0.49;
 controls.minDistance = 1.35;
 controls.maxDistance = 32;
 
-scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x111319, 0.6));
+scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 0.6));
 
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
 keyLight.position.set(4, 7, 6);
@@ -84,7 +84,7 @@ keyLight.shadow.camera.near = 0.5;
 keyLight.shadow.camera.far = 18;
 scene.add(keyLight);
 
-const fillLight = new THREE.PointLight(0x4fc3b1, 1.8, 18);
+const fillLight = new THREE.PointLight(0xffffff, 1.45, 18);
 fillLight.position.set(-5, 3.2, 2);
 scene.add(fillLight);
 
